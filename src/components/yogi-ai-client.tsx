@@ -29,6 +29,7 @@ export function YogiAiClient() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>(0);
+  const audioQueueRef = useRef<string[]>([]);
 
   // State management
   const [appState, setAppState] = useState<'loading' | 'ready' | 'detecting' | 'error'>('loading');
@@ -40,40 +41,36 @@ export function YogiAiClient() {
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [generatedPlan, setGeneratedPlan] = useState<string>('');
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const audioQueueRef = useRef<string[]>([]);
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const [poseLandmarker, setPoseLandmarker] = useState<PoseLandmarker | null>(null);
 
-  const loadPoseLandmarker = useCallback(async () => {
-    try {
-      const vision = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22-rc.20250304/wasm"
-      );
-      const newPoseLandmarker = await PoseLandmarker.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
-          delegate: "GPU",
-        },
-        runningMode: "VIDEO",
-        numPoses: 1
-      });
-      setPoseLandmarker(newPoseLandmarker);
-      setLoadingMessage('AI Model Loaded.');
-      setAppState('ready');
-    } catch (error) {
-      console.error('Error loading PoseLandmarker model:', error);
-      setErrorMessage('Failed to load the AI model. Please refresh the page.');
-      setAppState('error');
-    }
-  }, []);
-
   useEffect(() => {
-    if (appState === 'loading' && !poseLandmarker) {
-      loadPoseLandmarker();
+    async function loadPoseLandmarker() {
+      try {
+        const vision = await FilesetResolver.forVisionTasks(
+            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
+        );
+        const newPoseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
+            delegate: "GPU",
+          },
+          runningMode: "VIDEO",
+          numPoses: 1
+        });
+        setPoseLandmarker(newPoseLandmarker);
+        setLoadingMessage('AI Model Loaded.');
+        setAppState('ready');
+      } catch (error) {
+        console.error('Error loading PoseLandmarker model:', error);
+        setErrorMessage('Failed to load the AI model. Please refresh the page.');
+        setAppState('error');
+      }
     }
-  }, [appState, loadPoseLandmarker, poseLandmarker]);
-
-  const stopWebcam = () => {
+    loadPoseLandmarker();
+  }, []);
+  
+  const stopWebcam = useCallback(() => {
     if (videoRef.current && videoRef.current.srcObject) {
       (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
       videoRef.current.srcObject = null;
@@ -89,9 +86,17 @@ export function YogiAiClient() {
       ctx?.clearRect(0, 0, canvas.width, canvas.height);
     }
     setFeedbackList([]);
-  };
+  }, []);
 
   const startWebcam = async () => {
+    if (!poseLandmarker) {
+      toast({
+        title: "Model not ready",
+        description: "The AI model is still loading. Please wait a moment.",
+        variant: "destructive"
+      });
+      return;
+    }
     setAppState('loading');
     setLoadingMessage('Accessing Webcam...');
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -119,7 +124,7 @@ export function YogiAiClient() {
     }
   };
 
-  const detectPoseLoop = useCallback(async () => {
+  const detectPoseLoop = useCallback(() => {
     if (appState !== 'detecting' || !poseLandmarker || !videoRef.current || !canvasRef.current) {
       return;
     }
@@ -140,14 +145,13 @@ export function YogiAiClient() {
             y: landmark.y * VIDEO_HEIGHT,
             z: landmark.z,
             score: landmark.visibility ?? 0,
-            name: `keypoint_${i}` // Temporary name, analyzer will use indices
         }));
 
         drawKeypoints(keypoints, 0.3, ctx);
         drawSkeleton(keypoints, 0.3, ctx);
         
         if (selectedPose) {
-          const newFeedback = analyzePose(keypoints, selectedPose);
+          const newFeedback = analyzePose(keypoints as Keypoint[], selectedPose);
           setFeedbackList(currentFeedback => {
              if (JSON.stringify(currentFeedback) !== JSON.stringify(newFeedback)) {
                 return newFeedback;
@@ -175,6 +179,10 @@ export function YogiAiClient() {
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
       }
+      // Make sure to stop the webcam when the component unmounts
+      if (videoRef.current && videoRef.current.srcObject) {
+         (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+      }
     };
   }, [appState, detectPoseLoop]);
 
@@ -183,7 +191,7 @@ export function YogiAiClient() {
       const audioDataUri = audioQueueRef.current.shift();
       if(audioDataUri){
         const audio = new Audio(audioDataUri);
-        audio.play();
+        audio.play().catch(e => console.error("Audio playback failed", e));
         audio.onended = () => {
             if(audioQueueRef.current.length === 0){
                 setIsAudioPlaying(false);
@@ -198,23 +206,25 @@ export function YogiAiClient() {
   }, []);
 
   const handleAudioFeedback = useCallback(async (text: string) => {
-    const result = await getAudioFeedback({ feedbackText: text });
-    if (result.success && result.audioDataUri) {
-        audioQueueRef.current.push(result.audioDataUri);
-        if(!isAudioPlaying){
-            setIsAudioPlaying(true);
-            playNextInQueue();
+    try {
+        const result = await getAudioFeedback({ feedbackText: text });
+        if (result.success && result.audioDataUri) {
+            audioQueueRef.current.push(result.audioDataUri);
+            if(!isAudioPlaying){
+                setIsAudioPlaying(true);
+                playNextInQueue();
+            }
+        } else {
+            console.error("Failed to get audio feedback:", result.error);
         }
-    } else {
-        console.error("Failed to get audio feedback");
+    } catch(e) {
+        console.error("Error in getAudioFeedback action", e);
     }
   }, [isAudioPlaying, playNextInQueue]);
 
   useEffect(() => {
     if (feedbackList.length > 0 && selectedPose) {
-        // Debounce or logic to prevent spamming audio
         const timeoutId = setTimeout(() => {
-             // Only play "good" feedback occasionally
             const isAllGood = feedbackList.every(f => f.includes('good') || f.includes('perfect'));
             if (!isAllGood) {
               feedbackList.forEach(f => {
@@ -223,7 +233,7 @@ export function YogiAiClient() {
                   }
               });
             }
-        }, 1000); // 1-second delay
+        }, 2000); // 2-second delay to avoid spamming
         return () => clearTimeout(timeoutId);
     }
   }, [feedbackList, selectedPose, handleAudioFeedback]);
@@ -240,16 +250,25 @@ export function YogiAiClient() {
     }
     setIsGeneratingPlan(true);
     setGeneratedPlan('');
-    const result = await getYogaPlan({ goal });
-    setIsGeneratingPlan(false);
-    if (result.success && result.plan) {
-      setGeneratedPlan(result.plan);
-    } else {
-      toast({
-          variant: "destructive",
-          title: "Error",
-          description: result.error || 'Failed to generate plan.',
-      });
+    try {
+        const result = await getYogaPlan({ goal });
+        if (result.success && result.plan) {
+          setGeneratedPlan(result.plan);
+        } else {
+          toast({
+              variant: "destructive",
+              title: "Error",
+              description: result.error || 'Failed to generate plan.',
+          });
+        }
+    } catch (e) {
+        toast({
+              variant: "destructive",
+              title: "Error",
+              description: 'An unexpected error occurred while generating the plan.',
+          });
+    } finally {
+        setIsGeneratingPlan(false);
     }
   };
 
@@ -352,19 +371,23 @@ export function YogiAiClient() {
                 </SelectContent>
               </Select>
               <div id="feedback-box" className="mt-4 space-y-2 text-sm min-h-[100px]">
-                {selectedPose && feedbackList.length > 0 ? (
-                  feedbackList.map((item, index) => {
-                    const isGood = item.includes('good') || item.includes('perfect');
-                    return (
-                        <div key={index} className={`flex items-center gap-2 p-2 rounded-md transition-all duration-300 ${isGood ? 'bg-green-100 dark:bg-green-900/50' : 'bg-amber-100 dark:bg-amber-900/50'}`}>
-                            {isGood ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Info className="h-4 w-4 text-amber-600" />}
-                            <span className={isGood ? 'text-green-800 dark:text-green-300' : 'text-amber-800 dark:text-amber-300'}>{item}</span>
-                        </div>
-                    );
-                  })
+                {selectedPose && appState === 'detecting' ? (
+                  feedbackList.length > 0 ? (
+                    feedbackList.map((item, index) => {
+                      const isGood = item.includes('good') || item.includes('perfect');
+                      return (
+                          <div key={index} className={`flex items-center gap-2 p-2 rounded-md transition-all duration-300 ${isGood ? 'bg-green-100 dark:bg-green-900/50' : 'bg-amber-100 dark:bg-amber-900/50'}`}>
+                              {isGood ? <CheckCircle className="h-4 w-4 text-green-600" /> : <Info className="h-4 w-4 text-amber-600" />}
+                              <span className={isGood ? 'text-green-800 dark:text-green-300' : 'text-amber-800 dark:text-amber-300'}>{item}</span>
+                          </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-muted-foreground pt-4 text-center">Analyzing...</div>
+                  )
                 ) : (
                    <div className="text-muted-foreground pt-4 text-center">
-                    {appState === 'detecting' ? (selectedPose ? 'Analyzing...' : 'Select a pose for feedback.') : 'Start webcam to begin analysis.'}
+                    {appState === 'detecting' ? 'Select a pose for feedback.' : 'Start webcam to begin analysis.'}
                    </div>
                 )}
               </div>
@@ -394,7 +417,7 @@ export function YogiAiClient() {
                 {isGeneratingPlan && <Loader className="mr-2 h-4 w-4 animate-spin" />}
                 Generate My Plan
               </Button>
-               {isGeneratingPlan && <Skeleton className="h-20 w-full" />}
+               {isGeneratingPlan && !generatedPlan && <Skeleton className="h-20 w-full" />}
               {generatedPlan && (
                 <Alert variant="default" className="bg-primary/10">
                   <AlertTitle className="font-bold">Your New Yoga Plan</AlertTitle>
@@ -408,3 +431,5 @@ export function YogiAiClient() {
     </div>
   );
 }
+
+    
