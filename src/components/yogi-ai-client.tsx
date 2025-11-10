@@ -50,8 +50,9 @@ export function YogiAiClient() {
   // Function to load the MoveNet model
   const loadMoveNet = useCallback(async () => {
     try {
-      const detectorConfig = { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING };
-      const detector = await poseDetection.createDetector(poseDetection.SupportedModels.MoveNet, detectorConfig);
+      const model = poseDetection.SupportedModels.MoveNet;
+      const detectorConfig: poseDetection.MoveNetModelConfig = { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING };
+      const detector = await poseDetection.createDetector(model, detectorConfig);
       detectorRef.current = detector;
       setLoadingMessage('AI Model Loaded.');
       setAppState('ready');
