@@ -3,8 +3,6 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 
 // TensorFlow and MediaPipe imports
 import { FilesetResolver, PoseLandmarker, DrawingUtils } from '@mediapipe/tasks-vision';
-import { POSE_CONNECTIONS } from '@mediapipe/tasks-vision';
-
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -148,7 +146,7 @@ export function YogiAiClient() {
       if (landmarkResults.landmarks && landmarkResults.landmarks.length > 0) {
         const landmarks = landmarkResults.landmarks[0];
         
-        drawingUtils.drawConnectors(landmarks, POSE_CONNECTIONS, { color: '#00BFFF', lineWidth: 3 });
+        drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, { color: '#00BFFF', lineWidth: 3 });
         drawingUtils.drawLandmarks(landmarks, { color: '#7B68EE', radius: 4 });
 
         const keypoints = landmarks.map((landmark, i) => ({
@@ -435,3 +433,5 @@ export function YogiAiClient() {
     </div>
   );
 }
+
+    
