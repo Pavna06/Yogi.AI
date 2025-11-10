@@ -1,10 +1,8 @@
 'use client';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 
-// TensorFlow and MoveNet imports
-import * as tf from '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-backend-webgl';
-import * as poseDetection from '@tensorflow-models/pose-detection';
+// TensorFlow and MediaPipe imports
+import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -22,7 +20,7 @@ import { drawKeypoints, drawSkeleton } from '@/lib/canvas-drawer';
 import { analyzePose } from '@/lib/pose-analyzer';
 import { CheckCircle, Info, Loader, Video, VideoOff, Volume2 } from 'lucide-react';
 
-type Detector = poseDetection.PoseDetector;
+type PoseLandmarker = any;
 
 const VIDEO_WIDTH = 640;
 const VIDEO_HEIGHT = 480;
@@ -33,7 +31,7 @@ export function YogiAiClient() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>(0);
-  const detectorRef = useRef<Detector | null>(null);
+  const detectorRef = useRef<PoseLandmarker | null>(null);
 
   // State management
   const [appState, setAppState] = useState<'loading' | 'ready' | 'detecting' | 'error'>('loading');
@@ -46,33 +44,37 @@ export function YogiAiClient() {
   const [generatedPlan, setGeneratedPlan] = useState<string>('');
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
   const audioQueueRef = useRef<string[]>([]);
+  const [hasCameraPermission, setHasCameraPermission] = useState(false);
+  const [poseLandmarker, setPoseLandmarker] = useState<PoseLandmarker | null>(null);
 
-  // Function to load the MoveNet model
-  const loadMoveNet = useCallback(async () => {
+  const loadPoseLandmarker = useCallback(async () => {
     try {
-      const model = poseDetection.SupportedModels.MoveNet;
-      const detectorConfig: poseDetection.MoveNetModelConfig = { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING };
-      const detector = await poseDetection.createDetector(model, detectorConfig);
-      detectorRef.current = detector;
+      const vision = await FilesetResolver.forVisionTasks(
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+      );
+      const newPoseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
+          delegate: "GPU",
+        },
+        runningMode: "VIDEO",
+        numPoses: 1
+      });
+      setPoseLandmarker(newPoseLandmarker);
       setLoadingMessage('AI Model Loaded.');
       setAppState('ready');
     } catch (error) {
-      console.error('Error loading MoveNet model:', error);
+      console.error('Error loading PoseLandmarker model:', error);
       setErrorMessage('Failed to load the AI model. Please refresh the page.');
       setAppState('error');
     }
   }, []);
 
   useEffect(() => {
-    loadMoveNet();
-    return () => {
-      // Cleanup on unmount
-      if (detectorRef.current) {
-        detectorRef.current.dispose();
-      }
-      stopWebcam();
-    };
-  }, [loadMoveNet]);
+    if (appState === 'loading') {
+      loadPoseLandmarker();
+    }
+  }, [appState, loadPoseLandmarker]);
 
   const stopWebcam = () => {
     if (videoRef.current && videoRef.current.srcObject) {
@@ -83,9 +85,12 @@ export function YogiAiClient() {
       cancelAnimationFrame(animationFrameId.current);
     }
     setAppState('ready');
+    setHasCameraPermission(false);
   };
 
   const startWebcam = async () => {
+    setAppState('loading');
+    setLoadingMessage('Accessing Webcam...');
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -94,6 +99,7 @@ export function YogiAiClient() {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.addEventListener('loadeddata', () => {
+            setHasCameraPermission(true);
             setAppState('detecting');
           });
         }
@@ -101,15 +107,17 @@ export function YogiAiClient() {
         console.error('Error accessing webcam:', error);
         setErrorMessage('Could not access webcam. Please allow camera permissions.');
         setAppState('error');
+        setHasCameraPermission(false);
       }
     } else {
         setErrorMessage('Your browser does not support webcam access.');
         setAppState('error');
+        setHasCameraPermission(false);
     }
   };
 
   const detectPoseLoop = useCallback(async () => {
-    if (appState !== 'detecting' || !detectorRef.current || !videoRef.current || !canvasRef.current) {
+    if (appState !== 'detecting' || !poseLandmarker || !videoRef.current || !canvasRef.current) {
       return;
     }
     const video = videoRef.current;
@@ -117,16 +125,25 @@ export function YogiAiClient() {
     const ctx = canvas.getContext('2d');
     
     if (video.readyState === video.HAVE_ENOUGH_DATA && ctx) {
-      const poses = await detectorRef.current.estimatePoses(video, { flipHorizontal: false });
-
-      // Clear and flip canvas for mirror view
+      const startTimeMs = performance.now();
+      const landmarkResults = poseLandmarker.detectForVideo(video, startTimeMs);
+      
       ctx.save();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.translate(canvas.width, 0);
-      ctx.scale(-1, 1);
       
-      if (poses.length > 0) {
-        const poseData: PoseData = poses[0];
+      if (landmarkResults.landmarks && landmarkResults.landmarks.length > 0) {
+        const keypoints = landmarkResults.landmarks[0].map((landmark, i) => ({
+            x: landmark.x * VIDEO_WIDTH,
+            y: landmark.y * VIDEO_HEIGHT,
+            score: landmark.visibility ?? 0,
+            name: poseLandmarker.getPoseLandmarkerOptions().baseOptions?.modelAssetPath?.includes('lite') ? 'lite' : 'full' // Placeholder name
+        }));
+
+        const poseData: PoseData = {
+          keypoints,
+          score: keypoints.reduce((acc, kp) => acc + kp.score, 0) / keypoints.length,
+        };
+
         drawKeypoints(poseData.keypoints, 0.3, ctx, 1);
         drawSkeleton(poseData.keypoints, 0.3, ctx, 1);
         
@@ -145,7 +162,7 @@ export function YogiAiClient() {
       ctx.restore();
     }
     animationFrameId.current = requestAnimationFrame(detectPoseLoop);
-  }, [appState, selectedPose]);
+  }, [appState, selectedPose, poseLandmarker]);
 
   useEffect(() => {
     if (appState === 'detecting') {
@@ -277,25 +294,32 @@ export function YogiAiClient() {
                             <AlertDescription>{errorMessage}</AlertDescription>
                         </Alert>
                     )}
-                    {(appState === 'ready' || appState === 'detecting') && (
+                    {(appState !== 'loading' && appState !== 'error') && (
                         <>
-                            <video
-                                id="webcam"
-                                ref={videoRef}
-                                autoPlay
-                                playsInline
-                                className="absolute top-0 left-0 w-full h-full object-cover rounded-lg"
-                                style={{ transform: 'scaleX(-1)' }}
-                                width={VIDEO_WIDTH}
-                                height={VIDEO_HEIGHT}
+                           <video
+                              id="webcam"
+                              ref={videoRef}
+                              autoPlay
+                              playsInline
+                              muted
+                              className="absolute top-0 left-0 w-full h-full object-cover rounded-lg transform -scale-x-100"
+                              width={VIDEO_WIDTH}
+                              height={VIDEO_HEIGHT}
                             />
                             <canvas
                                 id="pose-canvas"
                                 ref={canvasRef}
-                                className="absolute top-0 left-0 w-full h-full"
+                                className="absolute top-0 left-0 w-full h-full transform -scale-x-100"
                                 width={VIDEO_WIDTH}
                                 height={VIDEO_HEIGHT}
                             />
+                             {!hasCameraPermission && appState === 'ready' && (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center rounded-lg">
+                                  <Video className="h-12 w-12 mb-4"/>
+                                  <h3 className="text-lg font-bold">Webcam Disconnected</h3>
+                                  <p className="text-sm">Please start your webcam to begin the session.</p>
+                                </div>
+                            )}
                         </>
                     )}
                     </div>

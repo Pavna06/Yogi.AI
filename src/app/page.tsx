@@ -1,5 +1,5 @@
-import { YogiAiClient } from '@/components/yogi-ai-client';
 import { Icons } from '@/components/icons';
+import { YogiAiLoader } from '@/components/yogi-ai-loader';
 
 export default function Home() {
   return (
@@ -14,7 +14,7 @@ export default function Home() {
         </div>
       </header>
       <main className="flex-1">
-        <YogiAiClient />
+        <YogiAiLoader />
       </main>
     </div>
   );

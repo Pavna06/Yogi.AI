@@ -1,0 +1,14 @@
+diff --git a/node_modules/@tensorflow-models/pose-detection/package.json b/node_modules/@tensorflow-models/pose-detection/package.json
+index 54c35e8..c656a84 100644
+--- a/node_modules/@tensorflow-models/pose-detection/package.json
++++ b/node_modules/@tensorflow-models/pose-detection/package.json
+@@ -58,7 +58,7 @@
+   "peerDependencies": {
+     "@mediapipe/pose": "0.5.1675469404",
+     "@tensorflow/tfjs-backend-webgl": "^4.10.0",
+-    "@tensorflow/tfjs-converter": "^4.10.0",
+-    "@tensorflow/tfjs-core": "^4.10.0"
++    "@tensorflow/tfjs-converter": "4.13.0",
++    "@tensorflow/tfjs-core": "4.13.0"
+   }
+ }
