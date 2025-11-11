@@ -103,9 +103,12 @@ export function YogiAiClient({ selectedPose, onFeedbackChange }: YogiAiClientPro
           canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
           if (landmarkResults.landmarks && landmarkResults.landmarks.length > 0) {
             for (const landmarks of landmarkResults.landmarks) {
-              drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
+              drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, { color: 'hsl(var(--primary))', lineWidth: 2 });
               drawingUtils.drawLandmarks(landmarks, {
-                  radius: (data) => DrawingUtils.lerp(data.from!.z, -0.15, 0.1, 5, 1)
+                  color: 'hsl(var(--primary-foreground))',
+                  fillColor: 'hsl(var(--primary))',
+                  lineWidth: 1,
+                  radius: 3,
               });
             }
           }
@@ -150,7 +153,7 @@ export function YogiAiClient({ selectedPose, onFeedbackChange }: YogiAiClientPro
 
 
   return (
-    <Card className="overflow-hidden w-full h-full">
+    <Card className="overflow-hidden w-full h-full shadow-lg transition-all duration-300">
         <CardHeader>
             <CardTitle>Real-time Pose Correction</CardTitle>
             <CardDescription>
@@ -160,22 +163,22 @@ export function YogiAiClient({ selectedPose, onFeedbackChange }: YogiAiClientPro
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="relative w-full aspect-video bg-secondary rounded-lg flex items-center justify-center">
+            <div className="relative w-full aspect-video bg-muted/50 rounded-lg flex items-center justify-center overflow-hidden">
             {appState === 'loading' && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/50 text-white">
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-background/80 backdrop-blur-sm text-foreground">
                     <Loader className="animate-spin h-8 w-8" />
                     <p className="font-medium">{loadingMessage}</p>
                 </div>
             )}
             {appState === 'error' && (
-                <Alert variant="destructive" className="w-auto">
+                <Alert variant="destructive" className="w-auto z-20">
                     <AlertTitle>Error</AlertTitle>
                     <AlertDescription>{errorMessage}</AlertDescription>
                 </Alert>
             )}
             {appState === 'permission_denied' && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center rounded-lg">
-                    <VideoOff className="h-12 w-12 mb-4"/>
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm text-foreground p-4 text-center rounded-lg">
+                    <VideoOff className="h-12 w-12 mb-4 text-destructive"/>
                     <h3 className="text-lg font-bold">Camera Access Denied</h3>
                     <p className="text-sm">Please enable camera permissions in your browser settings and refresh the page.</p>
                 </div>
@@ -186,19 +189,19 @@ export function YogiAiClient({ selectedPose, onFeedbackChange }: YogiAiClientPro
                 playsInline
                 autoPlay
                 muted
-                className={`absolute top-0 left-0 w-full h-full object-cover rounded-lg transform -scale-x-100 ${hasCameraPermission ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute top-0 left-0 w-full h-full object-cover rounded-lg transform -scale-x-100 transition-opacity duration-500 ${hasCameraPermission ? 'opacity-100' : 'opacity-0'}`}
                 width={VIDEO_WIDTH}
                 height={VIDEO_HEIGHT}
               />
               <canvas
                   id="pose-canvas"
                   ref={canvasRef}
-                  className="absolute top-0 left-0 w-full h-full transform -scale-x-100"
+                  className="absolute top-0 left-0 w-full h-full transform -scale-x-100 z-10"
                   width={VIDEO_WIDTH}
                   height={VIDEO_HEIGHT}
               />
                 {!hasCameraPermission && appState !== 'permission_denied' && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center rounded-lg">
+                  <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm text-foreground p-4 text-center rounded-lg">
                     <Video className="h-12 w-12 mb-4"/>
                     <h3 className="text-lg font-bold">Waiting for Webcam</h3>
                     <p className="text-sm">Please grant camera access to begin.</p>
