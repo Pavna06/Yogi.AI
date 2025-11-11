@@ -26,14 +26,14 @@
     --radius: 0.5rem;
 
     /* Custom Sidebar vars */
-    --sidebar-background: 220 13% 18%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 173 80% 40%;
+    --sidebar-background: 210 40% 98%;
+    --sidebar-foreground: 220 9% 25%;
+    --sidebar-primary: 173 80% 30%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 9% 30%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 220 9% 30%;
-    --sidebar-ring: 173 70% 50%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: 222.2 47.4% 11.2%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 173 80% 30%;
   }
 
   .dark {
@@ -58,13 +58,13 @@
     --ring: 173 80% 40%;
 
     /* Custom Sidebar vars */
-    --sidebar-background: 220 13% 13%;
+    --sidebar-background: 220 13% 18%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 173 80% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 9% 25%;
+    --sidebar-accent: 220 9% 30%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 220 9% 25%;
+    --sidebar-border: 220 9% 30%;
     --sidebar-ring: 173 70% 50%;
   }
 }
