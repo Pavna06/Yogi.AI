@@ -2,38 +2,38 @@
   "placeholderImages": [
     {
       "id": "Tree",
-      "description": "A person in Tree Pose, balancing on one leg with the other foot on the inner thigh.",
+      "description": "Balance on one leg, place the sole of your other foot on your inner thigh or calf (avoiding the knee), and bring your hands to your heart.",
       "imageUrl": "https://images.unsplash.com/photo-1758599880598-1e8c8bb237a4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx5b2dhJTIwdHJlZSUyMHBvc2V8ZW58MHx8fHwxNzYyODMyMzY5fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "yoga tree"
     },
     {
       "id": "Warrior_II",
-      "description": "A person in Warrior II Pose, with legs in a wide stance, front knee bent, and arms extended.",
+      "description": "Step your feet wide apart, bend your front knee to 90 degrees directly over your ankle, and extend your arms parallel to the floor.",
       "imageUrl": "https://images.unsplash.com/photo-1561577732-12fffa81b37e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3YXJyaW9yJTIwcG9zZSUyMHlvZ2ElMjB8ZW58MHx8fHwxNzYyODMyOTUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "yoga warrior"
     },
     {
       "id": "Triangle",
-      "description": "A person in Triangle Pose, with legs wide apart, one hand on the floor, and the other extended upwards.",
+      "description": "Stand with feet wide, straighten your front leg, and hinge at your hip to lower your front hand to your shin or the floor. Extend the other arm up.",
       "imageUrl": "https://images.unsplash.com/photo-1758274535860-93a116aa7897?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx5b2dhJTIwdHJpYW5nbGV8ZW58MHx8fHwxNzYyODMyMjY0fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "yoga triangle"
     },
     {
       "id": "Downward_Dog",
-      "description": "A person in Downward-Facing Dog pose, forming an inverted V-shape with their body.",
+      "description": "From your hands and knees, lift your hips up and back to form an inverted V-shape. Press firmly through your hands and heels.",
       "imageUrl": "https://images.unsplash.com/photo-1677741448226-238a38a0b1b8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkb3dud2FyZCUyMGZhY2luZyUyMGRvZyUyMHlvZ2ElMjBwb3NlfGVufDB8fHx8MTc2MjgzMjMwOHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "yoga dog"
     },
     {
       "id": "Staff",
-      "description": "A person in Staff Pose, sitting on the floor with legs extended straight forward.",
-      "imageUrl": "https://images.unsplash.com/photo-1701826510656-8dbcec14a4b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzaXR0aW5nJTIwb24lMjB5b2dhJTIwbWF0JTIwd2l0aCUyMGJvdGglMjBmZWV0JTIwc3RyZXRjaGVkJTIwb3V0fGVufDB8fHx8MTc2MjgzMzM1Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Sit on the floor with your legs extended straight in front of you. Keep your back straight and press your palms into the floor beside your hips.",
+      "imageUrl": "https://images.unsplash.com/photo-1701826510656-8dbcec14a4b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzaXR0aW5nJTIwb24lMjB5b2dhJTIwbWF0JTIwd2l0aCUyMGJvdGglMjBmZWV0JTIwc3RyZXRjaGVkJTIwb3V0fGVufDB8fHx8MTc2MjgzMzM1Nnww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "yoga sitting"
     },
     {
       "id": "Bound_Angle",
-      "description": "A person in Bound Angle Pose, sitting with the soles of the feet together.",
-      "imageUrl": "https://images.unsplash.com/photo-1758599879693-9e06f55a4ded?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMnx8Ym91bmQlMjBhbmdsZSUyMHNpdHRpbmclMjB5b2dhJTIwfGVufDB8fHx8MTc2MjgzMzE1N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "description": "Sit tall, bring the soles of your feet together, and let your knees fall out to the sides. Hold onto your feet or ankles.",
+      "imageUrl": "https://images.unsplash.com/photo-1758599879693-9e06f55a4ded?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMnx8Ym91bmQlMjBhbmdsZSUyMHNpdHRpbmclMjB5b2dhJTIwfGVufDB8fHx8MTc2MjgzMzE1N3ww&ixlib.rb-4.1.0&q=80&w=1080",
       "imageHint": "yoga butterfly"
     }
   ]

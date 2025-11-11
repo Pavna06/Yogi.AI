@@ -359,14 +359,17 @@ export function YogiAiClient() {
               </Select>
               
               {selectedPoseImage && (
-                <div className="mt-4 relative aspect-video w-full">
-                  <Image 
-                    src={selectedPoseImage.imageUrl}
-                    alt={`Example of ${POSES[selectedPose as PoseName].name} pose`}
-                    fill
-                    className="rounded-md object-cover"
-                    data-ai-hint={selectedPoseImage.imageHint}
-                  />
+                <div className="mt-4 space-y-2">
+                  <div className="relative aspect-video w-full">
+                    <Image 
+                      src={selectedPoseImage.imageUrl}
+                      alt={`Example of ${POSES[selectedPose as PoseName].name} pose`}
+                      fill
+                      className="rounded-md object-cover"
+                      data-ai-hint={selectedPoseImage.imageHint}
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground p-2 bg-secondary rounded-md">{selectedPoseImage.description}</p>
                 </div>
               )}
 
