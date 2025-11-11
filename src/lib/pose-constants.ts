@@ -11,6 +11,8 @@ export const POSES = {
   Warrior_II: 'Warrior II',
   Triangle: 'Triangle',
   Downward_Dog: 'Downward Dog',
+  Staff: 'Staff Pose',
+  Bound_Angle: 'Bound Angle Pose',
 } as const;
 
 export type PoseName = keyof typeof POSES;
@@ -98,6 +100,30 @@ export const POSE_CONFIG: Record<PoseName, Record<string, AngleConfig>> = {
       p1: KEYPOINTS.right_shoulder, p2: KEYPOINTS.right_hip, p3: KEYPOINTS.right_knee,
       target: 150, tolerance: 15,
       feedback_low: 'Lift your hips higher, creating an inverted V shape.', feedback_high: 'Lower your hips slightly.', feedback_good: 'Hip angle is great.'
+    }
+  },
+  Staff: {
+    back: {
+        p1: KEYPOINTS.right_shoulder, p2: KEYPOINTS.right_hip, p3: KEYPOINTS.right_knee,
+        target: 90, tolerance: 15,
+        feedback_low: 'Sit up straighter, bring your torso to a 90-degree angle with your legs.', feedback_high: 'Lean back slightly to straighten your spine.', feedback_good: 'Your back is perfectly straight.'
+    },
+    legs: {
+        p1: KEYPOINTS.right_hip, p2: KEYPOINTS.right_knee, p3: KEYPOINTS.right_ankle,
+        target: 180, tolerance: 15,
+        feedback_low: 'Straighten your legs completely.', feedback_high: '', feedback_good: 'Your legs are nice and straight.'
+    }
+  },
+  Bound_Angle: {
+    left_knee: {
+        p1: KEYPOINTS.left_hip, p2: KEYPOINTS.left_knee, p3: KEYPOINTS.left_ankle,
+        target: 60, tolerance: 15,
+        feedback_low: '', feedback_high: 'Try to lower your left knee towards the floor.', feedback_good: 'Your left knee is in a good position.'
+    },
+    right_knee: {
+        p1: KEYPOINTS.right_hip, p2: KEYPOINTS.right_knee, p3: KEYPOINTS.right_ankle,
+        target: 60, tolerance: 15,
+        feedback_low: '', feedback_high: 'Try to lower your right knee towards the floor.', feedback_good: 'Your right knee is in a good position.'
     }
   }
 };
