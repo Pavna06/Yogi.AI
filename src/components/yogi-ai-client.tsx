@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Keypoint, PoseName, KEYPOINTS_MAPPING } from '@/lib/pose-constants';
 import { analyzePose } from '@/lib/pose-analyzer';
 import { getAudioFeedback } from '@/app/actions';
-import { Loader, Video, VideoOff, Info } from 'lucide-react';
+import { Loader, Video, VideoOff, Info, X } from 'lucide-react';
 
 const VIDEO_WIDTH = 640;
 const VIDEO_HEIGHT = 480;
@@ -37,6 +37,7 @@ export function YogiAiClient({ selectedPose, onFeedbackChange, onBreathingUpdate
   const [errorMessage, setErrorMessage] = useState('');
   const [hasCameraPermission, setHasCameraPermission] = useState(false);
   const [poseLandmarker, setPoseLandmarker] = useState<PoseLandmarker | null>(null);
+  const [showProTip, setShowProTip] = useState(true);
 
   const initApp = useCallback(async () => {
     setAppState('loading');
@@ -258,13 +259,19 @@ export function YogiAiClient({ selectedPose, onFeedbackChange, onBreathingUpdate
                     ? 'The AI is analyzing your pose.'
                     : 'Start your webcam to begin.'}
             </CardDescription>
-            <Alert className="mt-4">
-                <Info className="h-4 w-4" />
-                <AlertTitle>Pro Tip</AlertTitle>
-                <AlertDescription>
-                    For best results, position yourself 6-8 feet (2-2.5 meters) away, ensuring your entire body is visible.
-                </AlertDescription>
-            </Alert>
+            {showProTip && (
+                <Alert className="mt-4 relative pr-10">
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Pro Tip</AlertTitle>
+                    <AlertDescription>
+                        For best results, position yourself 6-8 feet (2-2.5 meters) away, ensuring your entire body is visible.
+                    </AlertDescription>
+                    <button onClick={() => setShowProTip(false)} className="absolute top-3 right-3 text-muted-foreground hover:text-foreground">
+                        <X className="h-4 w-4" />
+                        <span className="sr-only">Dismiss</span>
+                    </button>
+                </Alert>
+            )}
         </CardHeader>
         <CardContent>
             <div className="relative w-full aspect-video bg-muted rounded-lg flex items-center justify-center overflow-hidden">
@@ -316,5 +323,3 @@ export function YogiAiClient({ selectedPose, onFeedbackChange, onBreathingUpdate
     </Card>
   );
 }
-
-    
