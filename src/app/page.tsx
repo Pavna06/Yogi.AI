@@ -1,13 +1,34 @@
 
+'use client';
+import React, { useState } from 'react';
 import { Icons } from '@/components/icons';
 import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { SidebarContent } from '@/components/sidebar-content';
+import { YogiAiLoader } from '@/components/yogi-ai-loader';
+import { PoseName } from '@/lib/pose-constants';
 
 export default function Home() {
+  const [selectedPose, setSelectedPose] = useState<PoseName | null>(null);
+  const [feedbackList, setFeedbackList] = useState<string[]>([]);
+
+  const handleFeedbackChange = (newFeedback: string[]) => {
+    setFeedbackList(currentFeedback => {
+        if (JSON.stringify(currentFeedback) !== JSON.stringify(newFeedback)) {
+           return newFeedback;
+       }
+       return currentFeedback;
+     });
+  }
+
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarContent />
+        <SidebarContent 
+          selectedPose={selectedPose}
+          onPoseSelect={setSelectedPose}
+          feedbackList={feedbackList}
+          onFeedbackChange={handleFeedbackChange}
+        />
       </Sidebar>
       <SidebarInset>
         <div className="flex flex-col min-h-screen bg-background">
@@ -21,8 +42,8 @@ export default function Home() {
               <p className="text-sm text-muted-foreground hidden md:block">Your personal AI yoga instructor.</p>
             </div>
           </header>
-          <main className="flex-1">
-            {/* The YogiAiClient is now rendered within SidebarContent */}
+          <main className="flex-1 p-4">
+             <YogiAiLoader selectedPose={selectedPose} onFeedbackChange={handleFeedbackChange} />
           </main>
         </div>
       </SidebarInset>

@@ -2,16 +2,22 @@
 
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
-import { YogiAiClientProps } from './sidebar-content';
+import { PoseName } from '@/lib/pose-constants';
+
+export type YogiAiClientProps = {
+  selectedPose: PoseName | null;
+  onFeedbackChange: (feedback: string[]) => void;
+};
+
 
 const YogiAiClient = dynamic(
   () => import('@/components/yogi-ai-client').then((mod) => mod.YogiAiClient),
   {
     ssr: false,
     loading: () => (
-        <div className="container mx-auto p-4">
-            <Skeleton className="w-full aspect-video" />
-        </div>
+      <div className="w-full h-full">
+          <Skeleton className="w-full h-full aspect-video" />
+      </div>
     )
   }
 );

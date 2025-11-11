@@ -4,7 +4,7 @@ import { FilesetResolver, PoseLandmarker, DrawingUtils } from '@mediapipe/tasks-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from "@/hooks/use-toast";
-import { Keypoint } from '@/lib/pose-constants';
+import { Keypoint, PoseName } from '@/lib/pose-constants';
 import { analyzePose } from '@/lib/pose-analyzer';
 import { Loader, Video, VideoOff } from 'lucide-react';
 
@@ -14,7 +14,7 @@ const VIDEO_HEIGHT = 480;
 type AppState = 'initial' | 'loading' | 'detecting' | 'error' | 'permission_denied';
 
 type YogiAiClientProps = {
-  selectedPose: string | null;
+  selectedPose: PoseName | null;
   onFeedbackChange: (feedback: string[]) => void;
 };
 
@@ -121,11 +121,13 @@ export function YogiAiClient({ selectedPose, onFeedbackChange }: YogiAiClientPro
         }));
 
         if (selectedPose) {
-          const newFeedback = analyzePose(keypoints as Keypoint[], selectedPose as any);
+          const newFeedback = analyzePose(keypoints as Keypoint[], selectedPose);
           onFeedbackChange(newFeedback);
         }
       } else {
-        onFeedbackChange([]);
+        if (typeof onFeedbackChange === 'function') {
+          onFeedbackChange([]);
+        }
       }
     }
     animationFrameId.current = requestAnimationFrame(detectPoseLoop);
@@ -148,64 +150,62 @@ export function YogiAiClient({ selectedPose, onFeedbackChange }: YogiAiClientPro
 
 
   return (
-    <div className="container mx-auto p-4">
-      <Card className="overflow-hidden">
-          <CardHeader>
-              <CardTitle>Real-time Pose Correction</CardTitle>
-              <CardDescription>
-                  {appState === 'detecting'
-                      ? 'The AI is analyzing your pose.'
-                      : 'Start your webcam to begin.'}
-              </CardDescription>
-          </CardHeader>
-          <CardContent>
-              <div className="relative w-full aspect-video bg-secondary rounded-lg flex items-center justify-center">
-              {appState === 'loading' && (
-                  <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/50 text-white">
-                      <Loader className="animate-spin h-8 w-8" />
-                      <p className="font-medium">{loadingMessage}</p>
-                  </div>
-              )}
-              {appState === 'error' && (
-                  <Alert variant="destructive" className="w-auto">
-                      <AlertTitle>Error</AlertTitle>
-                      <AlertDescription>{errorMessage}</AlertDescription>
-                  </Alert>
-              )}
-              {appState === 'permission_denied' && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center rounded-lg">
-                      <VideoOff className="h-12 w-12 mb-4"/>
-                      <h3 className="text-lg font-bold">Camera Access Denied</h3>
-                      <p className="text-sm">Please enable camera permissions in your browser settings and refresh the page.</p>
-                  </div>
-              )}
-                <video
-                  id="webcam"
-                  ref={videoRef}
-                  playsInline
-                  autoPlay
-                  muted
-                  className={`absolute top-0 left-0 w-full h-full object-cover rounded-lg transform -scale-x-100 ${hasCameraPermission ? 'opacity-100' : 'opacity-0'}`}
+    <Card className="overflow-hidden w-full h-full">
+        <CardHeader>
+            <CardTitle>Real-time Pose Correction</CardTitle>
+            <CardDescription>
+                {appState === 'detecting'
+                    ? 'The AI is analyzing your pose.'
+                    : 'Start your webcam to begin.'}
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="relative w-full aspect-video bg-secondary rounded-lg flex items-center justify-center">
+            {appState === 'loading' && (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/50 text-white">
+                    <Loader className="animate-spin h-8 w-8" />
+                    <p className="font-medium">{loadingMessage}</p>
+                </div>
+            )}
+            {appState === 'error' && (
+                <Alert variant="destructive" className="w-auto">
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+            )}
+            {appState === 'permission_denied' && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center rounded-lg">
+                    <VideoOff className="h-12 w-12 mb-4"/>
+                    <h3 className="text-lg font-bold">Camera Access Denied</h3>
+                    <p className="text-sm">Please enable camera permissions in your browser settings and refresh the page.</p>
+                </div>
+            )}
+              <video
+                id="webcam"
+                ref={videoRef}
+                playsInline
+                autoPlay
+                muted
+                className={`absolute top-0 left-0 w-full h-full object-cover rounded-lg transform -scale-x-100 ${hasCameraPermission ? 'opacity-100' : 'opacity-0'}`}
+                width={VIDEO_WIDTH}
+                height={VIDEO_HEIGHT}
+              />
+              <canvas
+                  id="pose-canvas"
+                  ref={canvasRef}
+                  className="absolute top-0 left-0 w-full h-full transform -scale-x-100"
                   width={VIDEO_WIDTH}
                   height={VIDEO_HEIGHT}
-                />
-                <canvas
-                    id="pose-canvas"
-                    ref={canvasRef}
-                    className="absolute top-0 left-0 w-full h-full transform -scale-x-100"
-                    width={VIDEO_WIDTH}
-                    height={VIDEO_HEIGHT}
-                />
-                  {!hasCameraPermission && appState !== 'permission_denied' && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center rounded-lg">
-                      <Video className="h-12 w-12 mb-4"/>
-                      <h3 className="text-lg font-bold">Waiting for Webcam</h3>
-                      <p className="text-sm">Please grant camera access to begin.</p>
-                    </div>
-                )}
-              </div>
-          </CardContent>
-      </Card>
-    </div>
+              />
+                {!hasCameraPermission && appState !== 'permission_denied' && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center rounded-lg">
+                    <Video className="h-12 w-12 mb-4"/>
+                    <h3 className="text-lg font-bold">Waiting for Webcam</h3>
+                    <p className="text-sm">Please grant camera access to begin.</p>
+                  </div>
+              )}
+            </div>
+        </CardContent>
+    </Card>
   );
 }

@@ -21,32 +21,31 @@ import { getAudioFeedback, getYogaPlan } from '@/app/actions';
 import { POSES, PoseName } from '@/lib/pose-constants';
 import { CheckCircle, Info, Loader, Volume2 } from 'lucide-react';
 import { PlaceHolderImages, ImagePlaceholder } from '@/lib/placeholder-images';
-import { YogiAiLoader } from './yogi-ai-loader';
 
-export type YogiAiClientProps = {
-    selectedPose: string | null;
+export type SidebarProps = {
+    selectedPose: PoseName | null;
+    onPoseSelect: (pose: PoseName | null) => void;
+    feedbackList: string[];
     onFeedbackChange: (feedback: string[]) => void;
-  };
+};
 
-export function SidebarContent() {
+export function SidebarContent({ selectedPose, onPoseSelect, feedbackList, onFeedbackChange }: SidebarProps) {
   const { toast } = useToast();
   const audioQueueRef = useRef<string[]>([]);
-  const [selectedPose, setSelectedPose] = useState<PoseName | null>(null);
   const [selectedPoseImage, setSelectedPoseImage] = useState<ImagePlaceholder | null>(null);
-  const [feedbackList, setFeedbackList] = useState<string[]>([]);
   const [goal, setGoal] = useState<string>('');
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [generatedPlan, setGeneratedPlan] = useState<string>('');
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
 
-  const handleFeedbackChange = (newFeedback: string[]) => {
-    setFeedbackList(currentFeedback => {
-        if (JSON.stringify(currentFeedback) !== JSON.stringify(newFeedback)) {
-           return newFeedback;
-       }
-       return currentFeedback;
-     });
-  }
+  useEffect(() => {
+    if (selectedPose) {
+        const image = PlaceHolderImages.find(p => p.id === selectedPose) ?? null;
+        setSelectedPoseImage(image);
+    } else {
+        setSelectedPoseImage(null);
+    }
+  }, [selectedPose]);
 
   const playNextInQueue = useCallback(() => {
     if (audioQueueRef.current.length > 0) {
@@ -135,20 +134,16 @@ export function SidebarContent() {
 
   const handlePoseSelection = (poseKey: string) => {
     if (poseKey === 'none') {
-        setSelectedPose(null);
-        setSelectedPoseImage(null);
-        setFeedbackList([]);
+        onPoseSelect(null);
+        onFeedbackChange([]);
     } else {
-        setSelectedPose(poseKey as PoseName);
-        const image = PlaceHolderImages.find(p => p.id === poseKey) ?? null;
-        setSelectedPoseImage(image);
-        setFeedbackList([]);
+        onPoseSelect(poseKey as PoseName);
+        onFeedbackChange([]);
     }
   };
 
   return (
     <SidebarContentWrapper>
-        <YogiAiLoader selectedPose={selectedPose} onFeedbackChange={handleFeedbackChange} />
         <SidebarHeader>
             <Card>
                 <CardHeader>
@@ -156,7 +151,7 @@ export function SidebarContent() {
                     <CardDescription>Select a pose to get live feedback.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                <Select onValueChange={handlePoseSelection}>
+                <Select onValueChange={handlePoseSelection} value={selectedPose || 'none'}>
                     <SelectTrigger>
                     <SelectValue placeholder="Select a Pose" />
                     </SelectTrigger>
