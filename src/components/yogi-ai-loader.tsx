@@ -7,6 +7,7 @@ import { PoseName } from '@/lib/pose-constants';
 export type YogiAiClientProps = {
   selectedPose: PoseName | null;
   onFeedbackChange: (feedback: string[]) => void;
+  onBreathingUpdate: (rate: number) => void;
 };
 
 

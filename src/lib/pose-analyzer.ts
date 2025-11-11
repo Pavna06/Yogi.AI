@@ -1,4 +1,4 @@
-import { POSE_CONFIG, Keypoint, PoseName } from './pose-constants';
+import { POSE_CONFIG, Keypoint, PoseName, KEYPOINTS_MAPPING } from './pose-constants';
 
 function calculateAngle(p1: Keypoint, p2: Keypoint, p3: Keypoint): number {
   if (!p1 || !p2 || !p3) return 0;

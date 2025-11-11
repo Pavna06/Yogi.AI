@@ -4,28 +4,33 @@ import { FilesetResolver, PoseLandmarker, DrawingUtils } from '@mediapipe/tasks-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from "@/hooks/use-toast";
-import { Keypoint, PoseName } from '@/lib/pose-constants';
+import { Keypoint, PoseName, KEYPOINTS_MAPPING } from '@/lib/pose-constants';
 import { analyzePose } from '@/lib/pose-analyzer';
 import { getAudioFeedback } from '@/app/actions';
 import { Loader, Video, VideoOff } from 'lucide-react';
 
 const VIDEO_WIDTH = 640;
 const VIDEO_HEIGHT = 480;
+const BREATHING_WINDOW_SECONDS = 10; // Analyze breathing over a 10-second window
+const FPS = 30; // Assuming a target FPS for calculations
+const BREATHING_SAMPLES = BREATHING_WINDOW_SECONDS * FPS;
 
 type AppState = 'initial' | 'loading' | 'detecting' | 'error' | 'permission_denied';
 
 type YogiAiClientProps = {
   selectedPose: PoseName | null;
   onFeedbackChange: (feedback: string[]) => void;
+  onBreathingUpdate: (rate: number) => void;
 };
 
-export function YogiAiClient({ selectedPose, onFeedbackChange }: YogiAiClientProps) {
+export function YogiAiClient({ selectedPose, onFeedbackChange, onBreathingUpdate }: YogiAiClientProps) {
   const { toast } = useToast();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number>(0);
   const audioQueueRef = useRef<string[]>([]);
   const isAudioPlaying = useRef(false);
+  const shoulderHistory = useRef<{ y: number, time: number }[]>([]);
 
   const [appState, setAppState] = useState<AppState>('initial');
   const [loadingMessage, setLoadingMessage] = useState('Loading...');
@@ -125,6 +130,44 @@ export function YogiAiClient({ selectedPose, onFeedbackChange }: YogiAiClientPro
     }
   }, [playNextInQueue]);
 
+  const analyzeBreathing = useCallback((landmarks: Keypoint[], timestamp: number) => {
+    const leftShoulder = landmarks[KEYPOINTS_MAPPING.left_shoulder];
+    const rightShoulder = landmarks[KEYPOINTS_MAPPING.right_shoulder];
+
+    if (leftShoulder && rightShoulder && (leftShoulder.score ?? 0) > 0.5 && (rightShoulder.score ?? 0) > 0.5) {
+      const avgShoulderY = (leftShoulder.y + rightShoulder.y) / 2;
+      
+      shoulderHistory.current.push({ y: avgShoulderY, time: timestamp });
+
+      // Trim history to the desired window
+      while (shoulderHistory.current.length > 0 && timestamp - shoulderHistory.current[0].time > BREATHING_WINDOW_SECONDS * 1000) {
+        shoulderHistory.current.shift();
+      }
+
+      if (shoulderHistory.current.length < FPS) { // Need at least 1s of data
+        return;
+      }
+      
+      // Simple peak detection to count breaths
+      let peaks = 0;
+      for (let i = 1; i < shoulderHistory.current.length - 1; i++) {
+        const prev = shoulderHistory.current[i - 1].y;
+        const current = shoulderHistory.current[i].y;
+        const next = shoulderHistory.current[i + 1].y;
+        // A peak is when a point is higher than its neighbors (inhale)
+        if (current < prev && current < next) { 
+          peaks++;
+        }
+      }
+      
+      const durationSeconds = (shoulderHistory.current[shoulderHistory.current.length - 1].time - shoulderHistory.current[0].time) / 1000;
+      if (durationSeconds > 0) {
+        const bpm = (peaks / durationSeconds) * 60;
+        onBreathingUpdate(bpm);
+      }
+    }
+  }, [onBreathingUpdate]);
+
 
   const detectPoseLoop = useCallback(() => {
     if (appState !== 'detecting' || !poseLandmarker || !videoRef.current || !canvasRef.current) return;
@@ -165,6 +208,8 @@ export function YogiAiClient({ selectedPose, onFeedbackChange }: YogiAiClientPro
             score: landmark.visibility ?? 0,
         }));
 
+        analyzeBreathing(keypoints as Keypoint[], startTimeMs);
+
         if (selectedPose) {
           const newFeedback = analyzePose(keypoints as Keypoint[], selectedPose);
           onFeedbackChange(newFeedback);
@@ -186,7 +231,7 @@ export function YogiAiClient({ selectedPose, onFeedbackChange }: YogiAiClientPro
       }
     }
     animationFrameId.current = requestAnimationFrame(detectPoseLoop);
-  }, [appState, selectedPose, poseLandmarker, onFeedbackChange, handleAudioFeedback]);
+  }, [appState, selectedPose, poseLandmarker, onFeedbackChange, handleAudioFeedback, analyzeBreathing]);
 
   useEffect(() => {
     if (appState === 'detecting') {

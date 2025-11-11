@@ -25,7 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Icons } from '@/components/icons';
 import { POSES, PoseName } from '@/lib/pose-constants';
-import { CheckCircle, Info, Loader, Volume2 } from 'lucide-react';
+import { CheckCircle, Info, Loader, Volume2, Waves } from 'lucide-react';
 import { PlaceHolderImages, ImagePlaceholder } from '@/lib/placeholder-images';
 
 export default function Home() {
@@ -36,6 +36,7 @@ export default function Home() {
   const [goal, setGoal] = useState('');
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
   const [generatedPlan, setGeneratedPlan] = useState('');
+  const [breathingRate, setBreathingRate] = useState<number>(0);
 
   const handlePoseSelection = (poseKey: string) => {
     if (poseKey === 'none') {
@@ -110,9 +111,24 @@ export default function Home() {
             <YogiAiLoader
               selectedPose={selectedPose}
               onFeedbackChange={handleFeedbackChange}
+              onBreathingUpdate={setBreathingRate}
             />
           </div>
           <div className="space-y-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Breathing Monitor</CardTitle>
+                <CardDescription>Live feedback on your breath.</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col items-center justify-center gap-4 text-center">
+                  <Waves className="h-10 w-10 text-primary" />
+                  <p className="text-4xl font-bold">
+                    {breathingRate > 0 ? breathingRate.toFixed(0) : '--'}
+                  </p>
+                  <p className="text-muted-foreground">Breaths per Minute (BPM)</p>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Pose Analysis</CardTitle>
