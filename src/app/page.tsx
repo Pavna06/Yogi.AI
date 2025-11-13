@@ -183,186 +183,191 @@ export default function Home() {
           <p className="text-sm text-muted-foreground hidden md:block">Your personal AI yoga instructor.</p>
         </div>
       </header>
-      <main className="flex-1 container py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <YogiAiLoader
-              selectedPose={selectedPose}
-              poseConfig={selectedPose ? allPoseConfigs[selectedPose] : undefined}
-              onFeedbackChange={handleFeedbackChange}
-              onAccuracyChange={handleAccuracyChange}
-              onBreathingUpdate={setBreathingRate}
-              photoDataUri={selectedPoseImage?.imageUrl}
-            />
-          </div>
-          <div className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Breathing Monitor</CardTitle>
-                <CardDescription>Live feedback on your breath.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center gap-4 text-center">
-                  <Waves className="h-10 w-10 text-primary" />
-                  <p className="text-4xl font-bold">
-                    {breathingRate > 0 ? breathingRate.toFixed(0) : '--'}
-                  </p>
-                  <p className="text-muted-foreground">Breaths per Minute (BPM)</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Pose Analysis</CardTitle>
-                <CardDescription>Select a pose to get live feedback.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  <Select onValueChange={handlePoseSelection} value={selectedPose || 'none'} >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a Pose" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {Object.entries(allPoses).map(([key, pose]) => (
-                        <SelectItem key={key} value={key}>
-                          <div className="flex items-center justify-between w-full">
-                            <span>{pose.name}</span>
-                            {userPoses[key] && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 ml-4 hover:bg-destructive/20"
-                                onClick={(e) => {
-                                  e.stopPropagation(); // Prevent dropdown from closing
-                                  e.preventDefault(); // Prevent selection
-                                  handleRemovePose(key);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                                <span className="sr-only">Remove {pose.name}</span>
-                              </Button>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <AddPoseForm onAddPose={handleAddPose}>
-                    <Button variant="outline" size="icon">
-                      <PlusCircle className="h-4 w-4" />
-                      <span className="sr-only">Add New Pose</span>
-                    </Button>
-                  </AddPoseForm>
-                </div>
-
-
-                {selectedPoseImage && selectedPose && (
-                  <div className="mt-4">
-                    <Image
-                      src={selectedPoseImage.imageUrl}
-                      alt={`Example of ${allPoses[selectedPose]?.name} pose`}
-                      width={600}
-                      height={400}
-                      className="rounded-md object-cover"
-                      data-ai-hint={selectedPoseImage.imageHint}
-                    />
-                     <p className="text-sm text-muted-foreground mt-2">{selectedPoseImage.description}</p>
-                  </div>
-                )}
-                
-                {selectedPose && (
-                  <div className="mt-4 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-muted-foreground">Accuracy</span>
-                        <Progress value={poseAccuracy} className="w-full" />
-                        <span className="text-sm font-bold w-12 text-right">{poseAccuracy.toFixed(0)}%</span>
-                      </div>
-                  </div>
-                )}
-
-
-                <div id="feedback-box" className="mt-4 space-y-2 text-sm min-h-[100px]">
-                  {selectedPose ? (
-                    feedbackList.length > 0 ? (
-                      feedbackList.map((item, index) => {
-                        const isGood = item.includes('good') || item.includes('perfect');
-                        return (
-                          <div
-                            key={index}
-                            className={`flex items-center gap-2 p-2 rounded-md ${
-                              isGood
-                                ? 'bg-green-100 dark:bg-green-900/50'
-                                : 'bg-amber-100 dark:bg-amber-900/50'
-                            }`}
-                          >
-                            {isGood ? (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <Info className="h-4 w-4 text-amber-600" />
-                            )}
-                            <span
-                              className={
-                                isGood
-                                  ? 'text-green-800 dark:text-green-300'
-                                  : 'text-amber-800 dark:text-amber-300'
-                              }
-                            >
-                              {item}
-                            </span>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <div className="text-muted-foreground pt-4 text-center">
-                        Analyzing...
-                      </div>
-                    )
-                  ) : (
-                    <div className="text-muted-foreground pt-4 text-center">
-                      Select a pose for feedback.
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Volume2 className="h-4 w-4" />
-                    <span>Audio feedback is enabled for corrections.</span>
-                </div>
-              </CardFooter>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Personalized Plan</CardTitle>
-                <CardDescription>
-                  Describe your yoga goal and let AI create a plan for you.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Textarea
-                  id="goal-input"
-                  placeholder="e.g., 'A 15-minute morning routine to improve flexibility.'"
-                  value={goal}
-                  onChange={(e) => setGoal(e.target.value)}
-                  disabled={isGeneratingPlan}
+      <main className="flex-1">
+        <div className="grid grid-cols-1 md:grid-cols-3 md:h-[calc(100vh-57px)]">
+            {/* Left Pane: Camera */}
+            <div className="md:col-span-2 md:h-full p-4 md:p-8">
+               <YogiAiLoader
+                  selectedPose={selectedPose}
+                  poseConfig={selectedPose ? allPoseConfigs[selectedPose] : undefined}
+                  onFeedbackChange={handleFeedbackChange}
+                  onAccuracyChange={handleAccuracyChange}
+                  onBreathingUpdate={setBreathingRate}
+                  photoDataUri={selectedPoseImage?.imageUrl}
                 />
-                <Button onClick={handleGeneratePlan} disabled={isGeneratingPlan} className="w-full">
-                  {isGeneratingPlan && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-                  Generate My Plan
-                </Button>
-                {isGeneratingPlan && !generatedPlan && <Skeleton className="h-20 w-full" />}
-                {generatedPlan && (
-                  <Alert variant="default">
-                    <AlertTitle className="font-bold">Your New Yoga Plan</AlertTitle>
-                    <AlertDescription className="whitespace-pre-wrap font-mono">
-                      {generatedPlan}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+            </div>
+            
+            {/* Right Pane: Controls */}
+            <div className="md:col-span-1 md:h-full md:overflow-y-auto p-4 md:p-8 pt-0 md:pt-8 border-l bg-muted/20">
+                <div className="space-y-8">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Breathing Monitor</CardTitle>
+                            <CardDescription>Live feedback on your breath.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col items-center justify-center gap-4 text-center">
+                            <Waves className="h-10 w-10 text-primary" />
+                            <p className="text-4xl font-bold">
+                            {breathingRate > 0 ? breathingRate.toFixed(0) : '--'}
+                            </p>
+                            <p className="text-muted-foreground">Breaths per Minute (BPM)</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Pose Analysis</CardTitle>
+                            <CardDescription>Select a pose to get live feedback.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex gap-2">
+                            <Select onValueChange={handlePoseSelection} value={selectedPose || 'none'} >
+                                <SelectTrigger>
+                                <SelectValue placeholder="Select a Pose" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="none">None</SelectItem>
+                                {Object.entries(allPoses).map(([key, pose]) => (
+                                    <SelectItem key={key} value={key}>
+                                    <div className="flex items-center justify-between w-full">
+                                        <span>{pose.name}</span>
+                                        {userPoses[key] && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-6 w-6 ml-4 hover:bg-destructive/20"
+                                            onClick={(e) => {
+                                            e.stopPropagation(); // Prevent dropdown from closing
+                                            e.preventDefault(); // Prevent selection
+                                            handleRemovePose(key);
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                            <span className="sr-only">Remove {pose.name}</span>
+                                        </Button>
+                                        )}
+                                    </div>
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <AddPoseForm onAddPose={handleAddPose}>
+                                <Button variant="outline" size="icon">
+                                <PlusCircle className="h-4 w-4" />
+                                <span className="sr-only">Add New Pose</span>
+                                </Button>
+                            </AddPoseForm>
+                            </div>
+
+
+                            {selectedPoseImage && selectedPose && (
+                            <div className="mt-4">
+                                <Image
+                                src={selectedPoseImage.imageUrl}
+                                alt={`Example of ${allPoses[selectedPose]?.name} pose`}
+                                width={600}
+                                height={400}
+                                className="rounded-md object-cover"
+                                data-ai-hint={selectedPoseImage.imageHint}
+                                />
+                                <p className="text-sm text-muted-foreground mt-2">{selectedPoseImage.description}</p>
+                            </div>
+                            )}
+                            
+                            {selectedPose && (
+                            <div className="mt-4 space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-muted-foreground">Accuracy</span>
+                                    <Progress value={poseAccuracy} className="w-full" />
+                                    <span className="text-sm font-bold w-12 text-right">{poseAccuracy.toFixed(0)}%</span>
+                                </div>
+                            </div>
+                            )}
+
+
+                            <div id="feedback-box" className="mt-4 space-y-2 text-sm min-h-[100px]">
+                            {selectedPose ? (
+                                feedbackList.length > 0 ? (
+                                feedbackList.map((item, index) => {
+                                    const isGood = item.includes('good') || item.includes('perfect');
+                                    return (
+                                    <div
+                                        key={index}
+                                        className={`flex items-center gap-2 p-2 rounded-md ${
+                                        isGood
+                                            ? 'bg-green-100 dark:bg-green-900/50'
+                                            : 'bg-amber-100 dark:bg-amber-900/50'
+                                        }`}
+                                    >
+                                        {isGood ? (
+                                        <CheckCircle className="h-4 w-4 text-green-600" />
+                                        ) : (
+                                        <Info className="h-4 w-4 text-amber-600" />
+                                        )}
+                                        <span
+                                        className={
+                                            isGood
+                                            ? 'text-green-800 dark:text-green-300'
+                                            : 'text-amber-800 dark:text-amber-300'
+                                        }
+                                        >
+                                        {item}
+                                        </span>
+                                    </div>
+                                    );
+                                })
+                                ) : (
+                                <div className="text-muted-foreground pt-4 text-center">
+                                    Analyzing...
+                                </div>
+                                )
+                            ) : (
+                                <div className="text-muted-foreground pt-4 text-center">
+                                Select a pose for feedback.
+                                </div>
+                            )}
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Volume2 className="h-4 w-4" />
+                                <span>Audio feedback is enabled for corrections.</span>
+                            </div>
+                        </CardFooter>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Personalized Plan</CardTitle>
+                            <CardDescription>
+                            Describe your yoga goal and let AI create a plan for you.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <Textarea
+                            id="goal-input"
+                            placeholder="e.g., 'A 15-minute morning routine to improve flexibility.'"
+                            value={goal}
+                            onChange={(e) => setGoal(e.target.value)}
+                            disabled={isGeneratingPlan}
+                            />
+                            <Button onClick={handleGeneratePlan} disabled={isGeneratingPlan} className="w-full">
+                            {isGeneratingPlan && <Loader className="mr-2 h-4 w-4 animate-spin" />}
+                            Generate My Plan
+                            </Button>
+                            {isGeneratingPlan && !generatedPlan && <Skeleton className="h-20 w-full" />}
+                            {generatedPlan && (
+                            <Alert variant="default">
+                                <AlertTitle className="font-bold">Your New Yoga Plan</AlertTitle>
+                                <AlertDescription className="whitespace-pre-wrap font-mono">
+                                {generatedPlan}
+                                </AlertDescription>
+                            </Alert>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
         </div>
       </main>
     </div>
