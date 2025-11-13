@@ -65,29 +65,30 @@ export function AddPoseForm({ children, onAddPose }: AddPoseFormProps) {
     if (!finalImageUrl) {
         setSavingStep('Generating image...');
         const imageResult = await getAIPoseImage({ poseName, poseDescription: description });
-        if (!imageResult.success || !imageResult.imageUrl) {
+        if (imageResult.success && imageResult.imageUrl) {
+            finalImageUrl = imageResult.imageUrl;
+            photoDataUri = imageResult.imageUrl; // Use the generated image for rule generation
+        } else {
             toast({
                 variant: 'destructive',
                 title: 'AI Image Generation Failed',
-                description: imageResult.error || 'Could not generate an image for this pose. Please try providing an image URL.',
+                description: imageResult.error || 'Could not generate an image. Continuing without one.',
             });
-            setIsSaving(false);
-            return;
+            // We can continue without a custom image, but we need to clear photoDataUri
+            photoDataUri = undefined;
         }
-        finalImageUrl = imageResult.imageUrl;
-        photoDataUri = imageResult.imageUrl;
     }
 
 
-    // Step 2: Generate rules with AI
+    // Step 2: Generate rules with AI, using the image if available
     setSavingStep('Generating rules...');
     const aiResult = await getAIPoseRules({ poseName, poseDescription: description, photoDataUri });
 
     if (!aiResult.success || !aiResult.rules) {
         toast({
             variant: 'destructive',
-            title: 'AI Generation Failed',
-            description: aiResult.error || 'Could not generate analysis rules. Please try again.',
+            title: 'AI Rule Generation Failed',
+            description: aiResult.error || 'Could not generate analysis rules for this pose. Please try again.',
         });
         setIsSaving(false);
         return;
@@ -95,25 +96,39 @@ export function AddPoseForm({ children, onAddPose }: AddPoseFormProps) {
 
     // Convert the AI-generated rules into the CustomPoseConfig format
     const config: CustomPoseConfig = Object.entries(aiResult.rules).reduce((acc, [name, rule]) => {
-      acc[name] = {
-        p1: KEYPOINTS_MAPPING[rule.p1],
-        p2: KEYPOINTS_MAPPING[rule.p2],
-        p3: KEYPOINTS_MAPPING[rule.p3],
-        target: Number(rule.target),
-        tolerance: Number(rule.tolerance),
-        feedback_low: rule.feedback_low,
-        feedback_high: rule.feedback_high,
-        feedback_good: rule.feedback_good,
-      };
+      // Gracefully handle if a keypoint isn't found, though the AI should be reliable.
+      if (KEYPOINTS_MAPPING[rule.p1] !== undefined && KEYPOINTS_MAPPING[rule.p2] !== undefined && KEYPOINTS_MAPPING[rule.p3] !== undefined) {
+        acc[name] = {
+          p1: KEYPOINTS_MAPPING[rule.p1],
+          p2: KEYPOINTS_MAPPING[rule.p2],
+          p3: KEYPOINTS_MAPPING[rule.p3],
+          target: Number(rule.target),
+          tolerance: Number(rule.tolerance),
+          feedback_low: rule.feedback_low,
+          feedback_high: rule.feedback_high,
+          feedback_good: rule.feedback_good,
+        };
+      }
       return acc;
     }, {} as CustomPoseConfig);
+
+    // Ensure we have at least some rules
+    if (Object.keys(config).length === 0) {
+        toast({
+            variant: 'destructive',
+            title: 'AI Rule Generation Failed',
+            description: 'The AI could not produce any valid rules from the description. Please try describing the pose differently.',
+        });
+        setIsSaving(false);
+        return;
+    }
 
 
     const newPose = {
       name: poseName,
       id: poseName.replace(/\s+/g, '_').toLowerCase(),
       description,
-      imageUrl: finalImageUrl,
+      imageUrl: finalImageUrl || '/placeholder.png', // Fallback image if generation fails and none was provided
       config,
     };
 

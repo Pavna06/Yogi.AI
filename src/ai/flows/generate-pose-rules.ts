@@ -29,9 +29,9 @@ const AngleRuleSchema = z.object({
     p3: z.enum(keypointNames).describe('The third keypoint of the angle.'),
     target: z.number().describe('The ideal angle in degrees.'),
     tolerance: z.number().describe('The acceptable tolerance for the angle in degrees.'),
-    feedback_low: z.string().describe('Feedback to give when the angle is too small.'),
-    feedback_high: z.string().describe('Feedback to give when the angle is too large.'),
-    feedback_good: z.string().describe('Feedback to give when the angle is correct.'),
+    feedback_low: z.string().describe('Feedback to give when the angle is too small. Should be encouraging and constructive.'),
+    feedback_high: z.string().describe('Feedback to give when the angle is too large. Should be encouraging and constructive.'),
+    feedback_good: z.string().describe('Feedback to give when the angle is correct. (e.g., "Left knee angle is perfect!").'),
 });
 
 const GeneratePoseRulesOutputSchema = z.object({
@@ -53,15 +53,15 @@ const prompt = ai.definePrompt({
 Use both the user's description and the provided photo as the primary source of information. The photo is the reference for the ideal pose.
 Photo: {{media url=photoDataUri}}
 {{else}}
-Use the user's description as the primary source of information.
+Use the user's description as the primary source of information to define the rules.
 {{/if}}
 
-The user has provided the name and description of a pose. Based on this, generate between 2 and 4 key angle rules to analyze the pose correctly.
+The user has provided the name and description of a pose. Based on this, generate AT LEAST 2 and AT MOST 4 key angle rules to analyze the pose correctly. Focus on the most critical angles for proper alignment.
 
 For each rule, you must define:
 1.  **Three keypoints (p1, p2, p3)** that form the angle. 'p2' is the vertex. Choose from the provided list of valid keypoint names.
 2.  The **target** angle in degrees.
-3.  A **tolerance** value in degrees.
+3.  A **tolerance** value in degrees (usually between 10 and 20).
 4.  **Feedback messages** for when the angle is too low, too high, or correct. The feedback should be encouraging and instructive.
 
 Pose Name: {{{poseName}}}
