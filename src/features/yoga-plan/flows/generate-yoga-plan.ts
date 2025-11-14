@@ -3,6 +3,8 @@
 /**
  * @fileOverview This file defines a Genkit flow for generating personalized yoga plans.
  *
+ * This flow is part of the 'Yoga Plan' feature.
+ *
  * The flow takes a user's goal as input and uses an AI model to generate a tailored yoga plan.
  * It exports:
  *   - generateYogaPlan: The main function to trigger the flow.

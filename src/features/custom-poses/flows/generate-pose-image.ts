@@ -2,6 +2,8 @@
 /**
  * @fileOverview Generates a yoga pose image using AI.
  *
+ * This flow is part of the 'Custom Poses' feature.
+ *
  * - generatePoseImage - A function that creates an image from a pose description.
  * - GeneratePoseImageInput - The input type for the generatePoseImage function.
  * - GeneratePoseImageOutput - The return type for the generatePoseImage function.

@@ -7,7 +7,7 @@
  * complex AI logic is only loaded when needed, improving initial page load performance.
  */
 'use client';
-import { PoseCorrectionLoader, PoseCorrectionLoaderProps } from '@/components/pose-correction-loader';
+import { PoseCorrectionLoader, PoseCorrectionLoaderProps } from '@/features/pose-correction/components/PoseCorrectionLoader';
 
 /**
  * Renders the top-left pane of the dashboard, which contains the camera feed and pose analysis.

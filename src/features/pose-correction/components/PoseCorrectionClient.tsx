@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from "@/hooks/use-toast";
 import { Keypoint, CustomPoseConfig, KEYPOINTS_MAPPING } from '@/lib/pose-constants';
-import { analyzePose } from '@/lib/pose-analyzer';
+import { analyzePose } from '@/features/pose-correction/lib/pose-analyzer';
 import { getAudioFeedback } from '@/app/actions';
 import { Loader, Video, VideoOff, Info, X } from 'lucide-react';
 
@@ -16,7 +16,7 @@ const FPS = 30; // Assuming a target FPS for calculations
 
 type AppState = 'initial' | 'loading' | 'detecting' | 'error' | 'permission_denied';
 
-type PoseCorrectionClientProps = {
+export type PoseCorrectionClientProps = {
   selectedPose: string | null;
   poseConfig?: CustomPoseConfig;
   onFeedbackChange: (feedback: string[]) => void;

@@ -2,6 +2,8 @@
 /**
  * @fileOverview Provides real-time audio feedback for yoga pose correction.
  *
+ * This flow is part of the 'Pose Correction' feature.
+ *
  * - audioFeedbackForPoseCorrection - A function that generates audio feedback based on pose analysis.
  * - AudioFeedbackForPoseCorrectionInput - The input type for the audioFeedbackForPoseCorrection function.
  * - AudioFeedbackForPoseCorrectionOutput - The return type for the audioFeedbackForPoseCorrection function.

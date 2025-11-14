@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { AddPoseForm } from '@/components/add-pose-form';
+import { AddPoseForm } from '@/features/custom-poses/components/AddPoseForm';
 import { PoseName, CustomPoseConfig } from '@/lib/pose-constants';
 import { ImagePlaceholder } from '@/lib/placeholder-images';
 import {

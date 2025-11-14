@@ -2,6 +2,8 @@
  * @fileoverview This component acts as a loader for the main AI client for pose correction.
  * It uses Next.js dynamic imports to lazy-load the `PoseCorrectionClient` component.
  *
+ * This loader is part of the 'Pose Correction' feature.
+ *
  * Why is this important?
  * The `PoseCorrectionClient` contains heavy client-side libraries like TensorFlow.js and MediaPipe.
  * By loading it dynamically (`ssr: false`), we prevent these large libraries from being
@@ -29,7 +31,7 @@ export type PoseCorrectionLoaderProps = {
 // Dynamically import the PoseCorrectionClient component.
 const PoseCorrectionClient = dynamic(
   // The import() function returns a promise that resolves to the component.
-  () => import('@/components/pose-correction-client').then((mod) => mod.PoseCorrectionClient),
+  () => import('@/features/pose-correction/components/PoseCorrectionClient').then((mod) => mod.PoseCorrectionClient),
   {
     // `ssr: false` is crucial. It tells Next.js to only render this component on the client.
     ssr: false,

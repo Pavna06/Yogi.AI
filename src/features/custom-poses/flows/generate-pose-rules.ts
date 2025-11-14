@@ -2,6 +2,8 @@
 /**
  * @fileOverview Generates yoga pose analysis rules using AI.
  *
+ * This flow is part of the 'Custom Poses' feature.
+ *
  * - generatePoseRules - A function that creates analysis rules from a pose description.
  * - GeneratePoseRulesInput - The input type for the generatePoseRules function.
  * - GeneratePoseRulesOutput - The return type for the generatePoseRules function.

@@ -5,7 +5,7 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/generate-yoga-plan.ts';
-import '@/ai/flows/audio-feedback-pose-correction.ts';
-import '@/ai/flows/generate-pose-rules.ts';
-import '@/ai/flows/generate-pose-image.ts';
+import '@/features/yoga-plan/flows/generate-yoga-plan';
+import '@/features/pose-correction/flows/generate-audio-feedback';
+import '@/features/custom-poses/flows/generate-pose-rules';
+import '@/features/custom-poses/flows/generate-pose-image';
