@@ -146,6 +146,7 @@ export function PoseCorrectionClient({ selectedPose, poseConfig, onFeedbackChang
       const canvasCtx = canvasRef.current.getContext('2d');
       if (canvasCtx) {
           const drawingUtils = new DrawingUtils(canvasCtx);
+          canvasCtx.save();
           canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
           if (landmarkResults.landmarks && landmarkResults.landmarks.length > 0) {
             for (const landmarks of landmarkResults.landmarks) {
@@ -158,6 +159,7 @@ export function PoseCorrectionClient({ selectedPose, poseConfig, onFeedbackChang
               });
             }
           }
+          canvasCtx.restore();
       }
 
       if (landmarkResults.landmarks && landmarkResults.landmarks.length > 0) {
@@ -178,7 +180,8 @@ export function PoseCorrectionClient({ selectedPose, poseConfig, onFeedbackChang
           const isAllGood = newFeedback.every(f => f.includes('good') || f.includes('perfect'));
             if (!isAllGood) {
               newFeedback.forEach(f => {
-                  if(!f.includes('good') && !f.includes('perfect')) {
+                  // Only provide audio for actionable feedback, not for "good" or "analyzing" messages.
+                  if(!f.includes('good') && !f.includes('perfect') && !f.includes('Analyzing')) {
                       handleAudioFeedback(f);
                   }
               });
