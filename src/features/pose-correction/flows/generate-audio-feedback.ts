@@ -63,7 +63,7 @@ const audioFeedbackForPoseCorrectionFlow = ai.defineFlow(
   },
   async (input) => {
     const { media } = await ai.generate({
-      model: googleAI.model('gemini-2.5-flash-preview-tts'),
+      model: googleAI.model('gemini-1.5-flash-latest'),
       config: {
         responseModalities: ['AUDIO'],
         speechConfig: {
