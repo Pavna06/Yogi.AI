@@ -59,8 +59,7 @@ export default function PoseDirectoryPage() {
             
             return (
               <Card key={key} className="group relative overflow-hidden transition-shadow hover:shadow-lg">
-                <Link href={`/poses/${key}`} legacyBehavior>
-                  <a className="block">
+                <Link href={`/poses/${key}`} className="block">
                     <CardContent className="p-0">
                       <Image
                         src={image?.imageUrl || `https://picsum.photos/seed/${key}/600/400`}
@@ -74,7 +73,6 @@ export default function PoseDirectoryPage() {
                     <CardHeader className="p-4">
                       <CardTitle>{pose.name}</CardTitle>
                     </CardHeader>
-                  </a>
                 </Link>
                 {/* Add a button to remove custom poses */}
                 {isCustom && (

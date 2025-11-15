@@ -26,8 +26,7 @@ export function PoseListPane({ allPoses, allPoseImages, currentPoseId }: PoseLis
             const image = allPoseImages[key];
             const isSelected = key === currentPoseId;
             return (
-            <Link key={key} href={`/poses/${key}`} legacyBehavior>
-                <a className="block">
+            <Link key={key} href={`/poses/${key}`} className="block">
                 <Card 
                     className={cn(
                         "group relative overflow-hidden transition-all hover:shadow-md",
@@ -48,7 +47,6 @@ export function PoseListPane({ allPoses, allPoseImages, currentPoseId }: PoseLis
                     <CardTitle className="text-sm">{pose.name}</CardTitle>
                     </CardHeader>
                 </Card>
-                </a>
             </Link>
             );
         })}
